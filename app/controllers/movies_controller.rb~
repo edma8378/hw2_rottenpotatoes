@@ -17,8 +17,7 @@ class MoviesController < ApplicationController
     if(@checked != nil)
       @movies = @movies.find_all{ |m| @checked.has_key?(m.rating) and @checked[m.rating]==true}
     elsif(session[:ratings] == nil and params[:ratings] == nil)
-      @all_ratings.each { |rating|      
-        ratings[:rating]
+      
     end
     
     
