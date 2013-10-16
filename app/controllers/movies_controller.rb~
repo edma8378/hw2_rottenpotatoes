@@ -1,60 +1,17 @@
 class MoviesController < ApplicationController
 
   def show
-    id = params[:id] # retrieve movie ID from URI route
+    id     = params[:id] # retrieve movie ID from URI route
     @movie = Movie.find(id) # look up movie by unique ID
-    # will render app/views/movies/show.<extension> by default
   end
 
   def index
-    #@movies = Movie.all
-    #@movie = Movie.order(params[:sort])
-    
-    @movies = Movie.all
-    @all_ratings = ['G','PG','PG-13','R']
-    @redirect = 0
-
-    if(@checked != nil)
-      @movies = @movies.find_all{ |m| @checked.has_key?(m.rating) and @checked[m.rating]==true}
-    elsif(session[:ratings] == nil and params[:ratings] == nil)
-      
-    end
-    
-    
-    if(params[:sort].to_s == 'title')
-      session[:sort] = params[:sort]
-      @movies = @movies.sort_by{|m| m.title }
-    elsif(params[:sort].to_s == 'release_date')
-      session[:sort] = params[:sort]
-      @movies = @movies.sort_by{|m| m.release_date.to_s }
-    elsif(session.has_key?(:sort) )
-      params[:sort] = session[:sort]  
-      @redirect = 1
-    end
-    
-    
-    if(params[:ratings] != nil)
-      session[:ratings] = params[:ratings]
-      @movies = @movies.find_all{ |m| params[:ratings].has_key?(m.rating) }
-    elsif(session.has_key?(:ratings) )
-      params[:ratings] = session[:ratings]
-      @redirect =1
-    end
-    
-    if(@redirect ==1)
-      redirect_to movies_path(:sort=>params[:sort], :ratings =>params[:ratings] )
-    end
-
-    @checked = {}
-    
-    @all_ratings.each { |rating|
-      if params[:ratings] == nil
-        @checked[rating] = false
-      else
-        @checked[rating] = params[:ratings].has_key?(rating)
-      end
-    }
-  
+    @all_ratings = Movie.ratings.sort # Get all distinct ratings in the table
+    session[:sort_by] ||= 'title' # set sorting to titile if there isnt already a sort_by
+    session[:ratings] ||= @all_ratings # session ratings hash
+    session[:sort_by] = (params[:sort].blank? ? session[:sort_by] : params[:sort]) # if sort_param is blank, sort by previous, else by param
+    session[:ratings] = (params[:ratings].blank? ? session[:ratings] : params[:ratings].keys) # if filter is blank, filter by previous, else by param
+    @movies = Movie.where(:rating => session[:ratings]).order("#{session[:sort_by]} ASC") # sql query for given rating and order by sort_by
   end
 
   def new
@@ -62,7 +19,7 @@ class MoviesController < ApplicationController
   end
 
   def create
-    @movie = Movie.create!(params[:movie])
+    @movie         = Movie.create!(params[:movie])
     flash[:notice] = "#{@movie.title} was successfully created."
     redirect_to movies_path
   end
@@ -85,8 +42,10 @@ class MoviesController < ApplicationController
     redirect_to movies_path
   end
 
-  def get
-    
+  def console_log(statement)
+    p "Begin Log"
+    p statement
   end
+
 
 end

@@ -3,9 +3,9 @@
 
 = form_tag movies_path, :method => :get do
   Include: 
-  - @all_ratings.each do |rating|
+  - @all_ratings.each do |rating| # For each distinct rating
     = rating
-    = check_box_tag "ratings[#{rating}]"
+    = check_box_tag "ratings[#{rating}]", 1, session[:ratings].include?(rating)  # adds checkbox that is checked by default
   = submit_tag 'Refresh'
 
 %table#movies
